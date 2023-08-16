@@ -43,9 +43,7 @@ const MessageContent = styled.div`
   padding: 0.8em 1em;
   width: fit-content;
   height: fit-content;
-  
-  
-`;
+  `;
 
 const MessageContainer = styled.div`
   display: flex;
@@ -119,7 +117,7 @@ const Conversation = () => {
 
   const groupName = currentRoom?.name;
 
-  const { data, isError, isLoading } = useContractRead({
+  const { data, isError, isLoading, refetch } = useContractRead({
     address: import.meta.env.VITE_AVALANCHE_CONTRACT,
     abi: ContractABI,
     functionName: 'getGroupChats',
@@ -140,10 +138,19 @@ const Conversation = () => {
     if (conversationRef) {
       conversationRef.scrollTo(0, conversationRef.scrollHeight);
     }
+    
+  }, [chatMessages]);
+
+  // Automatically refetch data every 5 seconds
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      refetch({ throwOnError: false, cancelRefetch: false });
+    }, 5000);
+
     return () => {
-   
-      };
-    }, [chatMessages]);
+      clearInterval(intervalId);
+    };
+  }, []);
 
 
 
