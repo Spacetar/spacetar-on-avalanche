@@ -10,7 +10,7 @@ const ClaimDetails = () => {
     const { address } = useAccount();
 
     const { data } = useContractRead({
-        address: import.meta.env.VITE_CELO_CONTRACT,
+        address: import.meta.env.VITE_AVALANCHE_CONTRACT,
         abi: ContractABI,
         functionName: 'userPoints',
         args: [address],
@@ -21,11 +21,13 @@ const ClaimDetails = () => {
   return (
     <>
       <DonateStyle>
-        <QrCodeImg>
+        {/* <QrCodeImg>
           <img src={claimPoints} alt="" />
-        </QrCodeImg>
+        </QrCodeImg> */}
         <article>
-          <h2>You've earned: <b>{Number(data)}</b>  Points</h2>
+          <h2>
+          You've earned: <b>{Number.isNaN(data) || data < 1 ? 0 : Number(data)}</b> Points
+          </h2>
           <br/>
           <p>
           You'll be able to swap your Spacestar point to <b>$SPACESTAR</b> community token and receive 1:1 airdrop upon Mainnet Launch. 

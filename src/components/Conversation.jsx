@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
 import { getFirstLetter, getUser } from '../helper';
+import React, { useEffect, useRef, useState } from 'react';
+import styled from 'styled-components'; 
 import { useContractRead } from 'wagmi'
-import {ContractABI} from '../utils/SpacestarABI'
+import { ContractABI } from '../utils/SpacestarABI'
 import { useChat } from '../context/ChatProvider';
 import { useAccount } from 'wagmi';
 import { generateAvatarUrl } from '../utils/avatarGenerator';
@@ -53,21 +53,29 @@ const MessageContainer = styled.div`
   color: #fff;
   font-size: 1rem;
   padding-right: 1.5em;
-  flex-direction: ${(props) => (props.incomingMessage ? "row" : "row-reverse")};
+`
+
+const OutgoingMessageContainer = styled(MessageContainer)`
+  flex-direction: row-reverse;
 
   ${MessageContent} {
-    background: ${(props) =>
-      props.incomingMessage ? "var(--blue-gradient)" : "#fff"};
-    border: ${(props) =>
-      props.incomingMessage ? "none" : "1px solid rgba(0, 0, 0, 0.1)"};
-    color: ${(props) => (props.incomingMessage ? "#fff" : "#000")};
-    box-shadow: ${(props) =>
-        props.incomingMessage
-          ? "rgba(32, 112, 198, 0.4)"
-          : "rgba(0, 0, 0, 0.15)"}
-      2px 3px 15px;
-    border-radius: ${(props) =>
-      props.incomingMessage ? "0 8px 8px 8px" : "8px 0 8px 8px"};
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    color: #000;
+    box-shadow: rgba(0, 0, 0, 0.15) 2px 3px 15px;
+    border-radius: 8px 0 8px 8px;
+  }
+`;
+
+const IncomingMessageContainer = styled(MessageContainer)`
+  flex-direction: row;
+
+  ${MessageContent} {
+    background: var(--blue-gradient);
+    border: none;
+    color: #fff;
+    box-shadow: rgba(32, 112, 198, 0.4) 2px 3px 15px;
+    border-radius: 0 8px 8px 8px;
   }
 `;
 
@@ -112,7 +120,7 @@ const Conversation = () => {
   const groupName = currentRoom?.name;
 
   const { data, isError, isLoading } = useContractRead({
-    address: import.meta.env.VITE_CELO_CONTRACT,
+    address: import.meta.env.VITE_AVALANCHE_CONTRACT,
     abi: ContractABI,
     functionName: 'getGroupChats',
     args: groupName ? [groupName] : [], 
@@ -148,25 +156,40 @@ return <div> <MessageContainer>{"Loading..."}</MessageContainer></div>;
   }
 
   if (isError) {
-    return <div><MessageContainer>{"Error occurred while fetching data"}</MessageContainer></div>
+    return <div  style={{color:'grey'}}><MessageContainer>{"Error occurred while fetching data"}</MessageContainer></div>
   }
 
 
   return (
     <ConversationContainer ref={chatConversation}>
       {chatMessages.map((m, index) => {
-        const { chatMessage, user } = m;
-        return (
-          <>
-          <MessageContainer key={index} incomingMessage={user !== address}>
-            <UserProfile content={user} />
-            <div className={{display:'flex'}}> 
-            <MessageContent>{chatMessage}</MessageContent>
-            <p style={{color:'grey',fontSize:'9px',marginTop:'5px',marginLeft:'10px'}}>10:10 <span>Am</span></p>
-            </div>
-          </MessageContainer>
-          </>
-        );
+        const { chatMessage, user, timestamp } = m;
+        var fixedTime = new Date(Number(timestamp) * 1000);
+        fixedTime = fixedTime.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+         if (user === address) {
+          return (
+            <OutgoingMessageContainer key={index}>
+              <UserProfile content={user} />
+              <div className="flex-container">
+                <MessageContent>{chatMessage}</MessageContent>
+                <p style={{ color: 'grey', fontSize: '9px', marginTop: '5px', marginLeft: '10px' }}>{fixedTime}</p>
+              </div>
+            </OutgoingMessageContainer>
+          );
+        } else {
+          return (
+            <IncomingMessageContainer key={index}>
+              <UserProfile content={user} />
+              <div className="flex-container">
+                <MessageContent>{chatMessage}</MessageContent>
+                <p style={{ color: 'grey', fontSize: '9px', marginTop: '5px', marginLeft: '10px' }}>{fixedTime}</p>
+              </div>
+            </IncomingMessageContainer>
+          );
+        }
       })}
     </ConversationContainer>
   );
